@@ -14,7 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          resume_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          resume_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          resume_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          candidate_education: string | null
+          candidate_email: string | null
+          candidate_experience: string | null
+          candidate_name: string | null
+          candidate_phone: string | null
+          candidate_skills: string[] | null
+          candidate_summary: string | null
+          created_at: string
+          file_name: string | null
+          file_path: string | null
+          id: string
+          resume_text: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          candidate_education?: string | null
+          candidate_email?: string | null
+          candidate_experience?: string | null
+          candidate_name?: string | null
+          candidate_phone?: string | null
+          candidate_skills?: string[] | null
+          candidate_summary?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          resume_text?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          candidate_education?: string | null
+          candidate_email?: string | null
+          candidate_experience?: string | null
+          candidate_name?: string | null
+          candidate_phone?: string | null
+          candidate_skills?: string[] | null
+          candidate_summary?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          resume_text?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
