@@ -3,8 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { extractTextFromFile } from "@/lib/pdfExtract";
 
 interface ResumeUploaderProps {
   onResumeProcessed: (resumeId: string) => void;
@@ -15,6 +16,7 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [status, setStatus] = useState("");
 
   const processFile = useCallback(async (file: File) => {
     if (!user) return;
@@ -29,17 +31,31 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
 
     setUploading(true);
     try {
-      // Upload to storage
+      // Step 1: Upload to storage
+      setStatus("Uploading file...");
       const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("resumes")
         .upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      // Read file text for AI processing
-      const text = await file.text();
+      // Step 2: Extract text from the file
+      setStatus("Extracting text from resume...");
+      let text: string;
+      try {
+        text = await extractTextFromFile(file);
+      } catch (extractError) {
+        console.error("Text extraction error:", extractError);
+        // Fallback: try reading as raw text
+        text = await file.text();
+      }
 
-      // Call AI to parse resume
+      if (!text || text.trim().length < 20) {
+        throw new Error("Could not extract readable text from the file. Please try a different file format (e.g., TXT or a text-based PDF).");
+      }
+
+      // Step 3: Call AI to parse resume
+      setStatus("AI is analyzing the resume...");
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-resume`,
         {
@@ -59,7 +75,8 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
 
       const parsed = await response.json();
 
-      // Save to database
+      // Step 4: Save to database
+      setStatus("Saving candidate data...");
       const { data: resume, error: dbError } = await supabase
         .from("resumes")
         .insert({
@@ -80,12 +97,14 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
 
       if (dbError) throw dbError;
 
-      toast({ title: "Resume uploaded!", description: `${parsed.name || file.name} has been processed.` });
+      toast({ title: "Resume processed!", description: `${parsed.name || file.name} has been analyzed successfully.` });
       onResumeProcessed(resume.id);
     } catch (error: any) {
+      console.error("Upload error:", error);
       toast({ title: "Upload failed", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
+      setStatus("");
     }
   }, [user, toast, onResumeProcessed]);
 
@@ -105,7 +124,7 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 ${
+      className={`border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 ${
         dragOver
           ? "border-primary bg-primary/5 dark:border-glow"
           : "border-border hover:border-primary/50"
@@ -115,27 +134,39 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
       onDrop={handleDrop}
     >
       {uploading ? (
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 text-primary animate-spin" />
-          <p className="text-foreground font-heading dark:text-glow-sm">Processing resume with AI...</p>
-          <p className="text-xs text-muted-foreground">This may take a moment</p>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 text-primary animate-spin" />
+          <div>
+            <p className="text-foreground font-heading font-medium dark:text-glow-sm">
+              Processing resume with AI...
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">{status}</p>
+          </div>
+          <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-primary rounded-full"
+              initial={{ width: "0%" }}
+              animate={{ width: "90%" }}
+              transition={{ duration: 8, ease: "easeOut" }}
+            />
+          </div>
         </div>
       ) : (
         <>
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
-              <Upload className="h-6 w-6 text-primary" />
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Upload className="h-7 w-7 text-primary" />
             </div>
             <div>
-              <p className="text-foreground font-heading font-medium dark:text-glow-sm">
+              <p className="text-foreground font-heading font-semibold text-lg dark:text-glow-sm">
                 Drop your resume here
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                PDF, DOC, DOCX, or TXT — Max 10MB
+              <p className="text-sm text-muted-foreground mt-1">
+                Supports PDF, DOC, DOCX, and TXT files up to 10MB
               </p>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-6">
             <label htmlFor="resume-upload">
               <Button variant="outline" className="font-heading gap-2 cursor-pointer" asChild>
                 <span>
@@ -151,6 +182,10 @@ export function ResumeUploader({ onResumeProcessed }: ResumeUploaderProps) {
               onChange={handleFileInput}
               className="hidden"
             />
+          </div>
+          <div className="mt-4 flex items-center gap-2 justify-center text-xs text-muted-foreground">
+            <AlertCircle className="h-3 w-3" />
+            <span>For best results, use text-based PDFs (not scanned images)</span>
           </div>
         </>
       )}
