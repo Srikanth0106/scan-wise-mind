@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Scan, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function Auth() {
+export default function Auth(): JSX.Element {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
