@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FileSearch, CheckCircle, XCircle, Clock, TrendingUp } from "lucide-react";
+import { FileSearch, CheckCircle, XCircle, Clock, TrendingUp, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -13,10 +13,7 @@ export default function Home() {
   useEffect(() => {
     if (!user) return;
     const fetchStats = async () => {
-      const { data } = await supabase
-        .from("resumes")
-        .select("status")
-        .eq("user_id", user.id);
+      const { data } = await supabase.from("resumes").select("status").eq("user_id", user.id);
       if (data) {
         setStats({
           total: data.length,
@@ -30,24 +27,20 @@ export default function Home() {
   }, [user]);
 
   const cards = [
-    { label: "Total Scanned", value: stats.total, icon: TrendingUp, color: "text-primary" },
-    { label: "Approved", value: stats.approved, icon: CheckCircle, color: "text-success" },
-    { label: "Rejected", value: stats.rejected, icon: XCircle, color: "text-destructive" },
-    { label: "Pending", value: stats.pending, icon: Clock, color: "text-warning" },
+    { label: "Total Scanned", value: stats.total, icon: TrendingUp, color: "text-primary", bg: "bg-primary/10" },
+    { label: "Approved", value: stats.approved, icon: CheckCircle, color: "text-success", bg: "bg-success/10" },
+    { label: "Rejected", value: stats.rejected, icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
+    { label: "Pending Review", value: stats.pending, icon: Clock, color: "text-warning", bg: "bg-warning/10" },
   ];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="font-heading text-3xl font-bold text-foreground dark:text-glow mb-2">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <h1 className="font-heading text-3xl font-extrabold text-foreground tracking-tight mb-1">
           Dashboard
         </h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user?.user_metadata?.full_name || user?.email}
+        <p className="text-muted-foreground text-sm">
+          Welcome back, <span className="text-foreground font-medium">{user?.user_metadata?.full_name || user?.email}</span>
         </p>
       </motion.div>
 
@@ -57,18 +50,18 @@ export default function Home() {
             key={card.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-card border border-border rounded-lg p-5 dark:card-glow dark:border-glow"
+            transition={{ delay: i * 0.08 }}
+            className="bg-card border border-border rounded-xl p-5 card-elevated hover:card-elevated-lg transition-shadow"
           >
             <div className="flex items-center gap-3 mb-3">
-              <card.icon className={`h-5 w-5 ${card.color}`} />
-              <span className="text-xs text-muted-foreground font-heading uppercase tracking-wider">
-                {card.label}
-              </span>
+              <div className={`h-9 w-9 rounded-lg ${card.bg} flex items-center justify-center`}>
+                <card.icon className={`h-4.5 w-4.5 ${card.color}`} />
+              </div>
             </div>
-            <p className={`text-3xl font-heading font-bold ${card.color} dark:text-glow-sm`}>
+            <p className="text-3xl font-heading font-extrabold text-foreground tracking-tight">
               {card.value}
             </p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">{card.label}</p>
           </motion.div>
         ))}
       </div>
@@ -76,22 +69,27 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-card border border-border rounded-lg p-8 text-center dark:card-glow dark:border-glow"
+        transition={{ delay: 0.35 }}
+        className="bg-card border border-border rounded-xl p-10 text-center card-elevated-lg relative overflow-hidden"
       >
-        <FileSearch className="h-12 w-12 text-primary mx-auto mb-4 dark:text-glow" />
-        <h2 className="font-heading text-xl font-bold text-foreground dark:text-glow-sm mb-2">
-          Ready to scan a resume?
-        </h2>
-        <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm">
-          Upload a resume and let AI extract candidate details, answer your questions, and help you make hiring decisions faster.
-        </p>
-        <Link to="/scan">
-          <Button size="lg" className="font-heading gap-2">
-            <FileSearch className="h-4 w-4" />
-            Start Scanning
-          </Button>
-        </Link>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+            <FileSearch className="h-7 w-7 text-primary" />
+          </div>
+          <h2 className="font-heading text-xl font-bold text-foreground tracking-tight mb-2">
+            Ready to scan a resume?
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm leading-relaxed">
+            Upload a resume and let AI extract candidate details, answer your questions, and help you make hiring decisions faster.
+          </p>
+          <Link to="/scan">
+            <Button size="lg" className="font-semibold gap-2 h-11 px-6">
+              Start Scanning
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
