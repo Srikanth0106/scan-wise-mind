@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import { Home, FileSearch, User, LogOut, Sun, Moon, Sparkles } from "lucide-react";
+import { Home, FileSearch, User, LogOut, Sun, Moon, Sparkles, History } from "lucide-react";
 
 export function Navbar() {
   const { signOut } = useAuth();
@@ -38,6 +38,10 @@ export function Navbar() {
           <Link to="/scan" className={navLinkClass("/scan")}>
             <FileSearch className="h-4 w-4" />
             <span className="hidden sm:inline">Scan</span>
+          </Link>
+          <Link to="/history" className={navLinkClass("/history")}>
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">History</span>
           </Link>
           <Link to="/profile" className={navLinkClass("/profile")}>
             <User className="h-4 w-4" />

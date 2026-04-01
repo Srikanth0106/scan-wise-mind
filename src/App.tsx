@@ -9,7 +9,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navbar } from "@/components/Navbar";
 import Home from "@/pages/Home";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import Scan from "@/pages/Scan";
+import History from "@/pages/History";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/NotFound";
 
@@ -34,6 +36,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/"
                 element={
@@ -47,6 +50,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AppLayout><Scan /></AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout><History /></AppLayout>
                   </ProtectedRoute>
                 }
               />
