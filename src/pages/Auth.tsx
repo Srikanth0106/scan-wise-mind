@@ -115,11 +115,16 @@ export default function Auth(): JSX.Element {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 space-y-2 text-center">
             <button onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              className="text-sm text-muted-foreground hover:text-primary transition-colors block mx-auto">
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </button>
+            {isLogin && (
+              <Link to="/reset-password" className="text-xs text-muted-foreground hover:text-primary transition-colors block">
+                Forgot your password?
+              </Link>
+            )}
           </div>
         </div>
       </motion.div>
